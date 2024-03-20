@@ -1,4 +1,4 @@
-### SVM anomation in manim
+### SVM animation in manim
 
 To create animation run:
 
