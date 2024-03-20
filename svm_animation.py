@@ -29,22 +29,32 @@ class SVMAnimation(Scene):
 
         self.wait(0.2)
 
-        # Plot data points on the NumberPlane
-        dots_pos = [
-            Dot(
-                point=plane.coords_to_point(x[0], x[1]),
-                color=RED if y[i] == 0 else BLUE,
-                radius=0.1,
-                stroke_width=5,
-                fill_opacity=0,
-            )
-            for i, x in enumerate(X)
-        ]
-        legend_labels = [Text("Class 0", color=RED), Text("Class 1", color=BLUE)]
-        legend = VGroup(*legend_labels).arrange(DOWN).to_corner(UL)
+        legend_labels = []
 
-        self.play(*[Create(dot) for dot in dots_pos], Create(legend))
-        self.wait(0.5)
+        # Plot data points on the NumberPlane
+        for class_index in [0, 1]:
+            class_mask = y == class_index
+            class_data = X[class_mask]
+            class_color = RED if class_index == 0 else BLUE
+            class_text = Text(f"Class {class_index}", color=class_color)
+            legend_labels.append(class_text)
+            dots = VGroup(
+                *[
+                    Dot(
+                        point=plane.coords_to_point(x[0], x[1]),
+                        color=class_color,
+                        radius=0.05,
+                    )
+                    for x in class_data
+                ]
+            )
+            legend = VGroup(*legend_labels).arrange(DOWN).to_corner(UL)
+            # self.add(dots, legend)
+            self.play(Create(dots), Transform(legend, legend))
+
+            self.wait(0.2)
+
+        self.wait(0.1)
 
         # Initialize SVM classifier
         svm = SVC(kernel="linear", C=1, max_iter=1, random_state=42)
@@ -104,18 +114,22 @@ class SVMAnimation(Scene):
 
             dots_pred_new = VGroup(
                 *[
-                    Dot(point=plane.coords_to_point(x[0], x[1]), color=RED if yp == 0 else BLUE, radius=0.05)
+                    Dot(
+                        point=plane.coords_to_point(x[0], x[1]),
+                        color=RED if yp == 0 else BLUE,
+                        radius=0.1,
+                        stroke_width=5,
+                        fill_opacity=0,
+                    )
                     for x, yp in zip(X, y_pred)
                 ]
             )
 
-            # Animate support vectors
-            self.play(Create(support_vector_dots))
-
-            # Animate decision boundary, margins, and classification
+            # Animate iteration step
             if n_iter == 1:
+                self.play(Create(iteration_text_new))
+                self.play(Create(support_vector_dots))
                 self.play(
-                    Write(iteration_text_new),
                     Create(decision_boundary_new),
                     Create(margin_pos_new),
                     Create(margin_neg_new),
@@ -129,8 +143,9 @@ class SVMAnimation(Scene):
                 dots_pred_last = dots_pred_new
 
             else:
+                self.play(Transform(iteration_text_last, iteration_text_new))
+                self.play(Create(support_vector_dots))
                 self.play(
-                    Transform(iteration_text_last, iteration_text_new),
                     Transform(decision_boundary_last, decision_boundary_new),
                     Transform(margin_pos_last, margin_pos_new),
                     Transform(margin_neg_last, margin_neg_new),

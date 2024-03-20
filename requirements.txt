@@ -1,0 +1,7 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-arm64
+
+python=3.10.13
+manim=0.18.0
+scikit-learn=1.4.1
